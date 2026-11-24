@@ -1,0 +1,585 @@
+/* ==========================================================================
+   CodeSprint 3D UI — Tactile Depth, CSS 3D Geometry & Light/Dark Variables
+   ========================================================================== */
+
+:root {
+  --cs-bg: #eef2ff;
+  --cs-surface: rgba(255, 255, 255, 0.88);
+  --cs-surface-solid: #ffffff;
+  --cs-surface-alt: rgba(241, 245, 249, 0.92);
+  --cs-border: #cbd5e1;
+  --cs-slab-lip: #cbd5e1;
+  --cs-rim: rgba(255, 255, 255, 0.9);
+  --cs-shadow: rgba(15, 23, 42, 0.14);
+  --cs-glare: rgba(255, 255, 255, 0.55);
+  --cs-grid: rgba(79, 70, 229, 0.14);
+  --cs-text: #0f172a;
+  --cs-text-muted: #475569;
+  --cs-accent: #4f46e5;
+  --cs-accent-2: #06b6d4;
+  --cs-accent-lip: #312e81;
+  --cs-btn-lip: #cbd5e1;
+  --cs-code-bg: #0f172a;
+  --cs-code-text: #e2e8f0;
+  --cs-sidebar-width: 252px;
+  --cs-font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --cs-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+[data-theme="dark"] {
+  --cs-bg: #060b18;
+  --cs-surface: rgba(17, 24, 39, 0.86);
+  --cs-surface-solid: #111827;
+  --cs-surface-alt: rgba(30, 41, 59, 0.9);
+  --cs-border: #334155;
+  --cs-slab-lip: #020617;
+  --cs-rim: rgba(148, 163, 184, 0.18);
+  --cs-shadow: rgba(0, 0, 0, 0.55);
+  --cs-glare: rgba(129, 140, 248, 0.22);
+  --cs-grid: rgba(129, 140, 248, 0.16);
+  --cs-text: #f1f5f9;
+  --cs-text-muted: #94a3b8;
+  --cs-accent: #6366f1;
+  --cs-accent-2: #22d3ee;
+  --cs-accent-lip: #312e81;
+  --cs-btn-lip: #0f172a;
+  --cs-code-bg: #020617;
+  --cs-code-text: #e2e8f0;
+}
+
+/* Base & Accessibility */
+html {
+  background-color: var(--cs-bg);
+}
+
+body {
+  background-color: transparent;
+  color: var(--cs-text);
+  font-family: var(--cs-font-sans);
+  margin: 0;
+  overflow-x: hidden;
+}
+
+:focus-visible {
+  outline: 3px solid var(--cs-accent);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0.5rem;
+  z-index: 2000;
+  padding: 0.5rem 1rem;
+  background: var(--cs-accent);
+  color: #ffffff;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.skip-link:focus {
+  left: 0.5rem;
+}
+
+/* ==========================================================================
+   3D Spatial Backdrop (Perspective Grid + Ambient Glow Orbs)
+   ========================================================================== */
+.bg-3d-stage {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.bg-3d-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(72px);
+  opacity: 0.32;
+}
+
+.bg-3d-orb-1 {
+  width: 420px;
+  height: 420px;
+  top: -120px;
+  right: 8%;
+  background: radial-gradient(circle, var(--cs-accent), transparent 70%);
+}
+
+.bg-3d-orb-2 {
+  width: 380px;
+  height: 380px;
+  bottom: -140px;
+  left: 18%;
+  background: radial-gradient(circle, var(--cs-accent-2), transparent 70%);
+}
+
+.bg-3d-grid {
+  position: absolute;
+  left: -20%;
+  right: -20%;
+  bottom: -18%;
+  height: 62vh;
+  background-image:
+    linear-gradient(to right, var(--cs-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--cs-grid) 1px, transparent 1px);
+  background-size: 48px 48px;
+  transform: perspective(580px) rotateX(68deg);
+  transform-origin: center bottom;
+  -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent 85%);
+  mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent 85%);
+}
+
+/* ==========================================================================
+   Pure-CSS 6-Face Rotating 3D Cube Emblem
+   ========================================================================== */
+.cube-scene {
+  --cube-size: 36px;
+  --cube-half: 18px;
+  width: var(--cube-size);
+  height: var(--cube-size);
+  perspective: 260px;
+  flex-shrink: 0;
+}
+
+.cube-scene.cube-sm {
+  --cube-size: 28px;
+  --cube-half: 14px;
+}
+
+.cube-3d {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  animation: csCubeSpin 11s linear infinite;
+}
+
+.cube-scene:hover .cube-3d {
+  animation-play-state: paused;
+}
+
+.cube-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--cs-font-mono);
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #ffffff;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  background: linear-gradient(135deg, var(--cs-accent), var(--cs-accent-2));
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.22);
+  backface-visibility: visible;
+}
+
+.cube-sm .cube-face {
+  font-size: 0.56rem;
+}
+
+.face-front  { transform: rotateY(0deg) translateZ(var(--cube-half)); }
+.face-back   { transform: rotateY(180deg) translateZ(var(--cube-half)); }
+.face-right  { transform: rotateY(90deg) translateZ(var(--cube-half)); }
+.face-left   { transform: rotateY(-90deg) translateZ(var(--cube-half)); }
+.face-top    { transform: rotateX(90deg) translateZ(var(--cube-half)); }
+.face-bottom { transform: rotateX(-90deg) translateZ(var(--cube-half)); }
+
+@keyframes csCubeSpin {
+  0%   { transform: rotateX(-22deg) rotateY(0deg); }
+  100% { transform: rotateX(-22deg) rotateY(360deg); }
+}
+
+/* ==========================================================================
+   Shell, 3D Sidebar & Glass Header
+   ========================================================================== */
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-sidebar {
+  background-color: var(--cs-surface);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-color: var(--cs-border) !important;
+  box-shadow: 6px 0 24px var(--cs-shadow), inset -1px 0 0 var(--cs-rim);
+  --bs-offcanvas-width: var(--cs-sidebar-width);
+}
+
+.app-main-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.app-header {
+  background-color: var(--cs-surface);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-color: var(--cs-border) !important;
+  box-shadow: 0 4px 18px var(--cs-shadow), inset 0 -1px 0 var(--cs-rim);
+  z-index: 1020;
+}
+
+.brand-title {
+  letter-spacing: -0.02em;
+}
+
+.brand-sub {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--cs-accent);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+@media (min-width: 992px) {
+  .app-sidebar {
+    width: var(--cs-sidebar-width);
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    transition: width 0.22s ease, opacity 0.22s ease;
+  }
+
+  .app-sidebar .offcanvas-body {
+    height: 100%;
+    overflow-y: auto;
+  }
+
+  .app-shell.sidebar-collapsed .app-sidebar {
+    width: 0;
+    overflow: hidden;
+    border-right: 0 !important;
+    box-shadow: none;
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+/* 3D Navigation Pills & Sidebar Footer */
+.app-sidebar .nav-3d {
+  color: var(--cs-text);
+  background-color: var(--cs-surface-solid);
+  border: 1px solid var(--cs-border);
+  border-radius: 0.65rem;
+  font-weight: 600;
+  padding: 0.62rem 0.85rem;
+  box-shadow: 0 4px 0 var(--cs-btn-lip), 0 6px 12px var(--cs-shadow), inset 0 1px 0 var(--cs-rim);
+  transition: transform 0.14s ease, box-shadow 0.14s ease, background-color 0.14s ease;
+}
+
+.app-sidebar .nav-3d:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--cs-btn-lip), 0 10px 18px var(--cs-shadow), inset 0 1px 0 var(--cs-rim);
+}
+
+.app-sidebar .nav-3d:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--cs-btn-lip), 0 2px 4px var(--cs-shadow);
+}
+
+.app-sidebar .nav-3d.active {
+  background: linear-gradient(135deg, var(--cs-accent), #4338ca);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  box-shadow: 0 4px 0 var(--cs-accent-lip), 0 10px 20px rgba(79, 70, 229, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.sidebar-footer-3d {
+  background-color: var(--cs-surface-alt);
+  border: 1px solid var(--cs-border);
+  border-radius: 0.75rem;
+  box-shadow: inset 0 2px 6px var(--cs-shadow), 0 1px 0 var(--cs-rim);
+}
+
+/* ==========================================================================
+   3D Slabs, Specular Interactive Tilt & View Entrance
+   ========================================================================== */
+.app-view:not(.d-none) {
+  animation: viewEnter3D 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes viewEnter3D {
+  from {
+    opacity: 0;
+    transform: perspective(1200px) rotateX(3.5deg) translateY(12px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.cs-card {
+  background-color: var(--cs-surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--cs-border);
+  border-radius: 0.9rem;
+}
+
+.card-3d-slab,
+.hero-3d-banner {
+  box-shadow:
+    0 6px 0 var(--cs-slab-lip),
+    0 18px 32px var(--cs-shadow),
+    inset 0 1px 0 var(--cs-rim);
+}
+
+.cs-card .card-header {
+  background-color: var(--cs-surface-alt);
+  border-color: var(--cs-border);
+  border-top-left-radius: calc(0.9rem - 1px);
+  border-top-right-radius: calc(0.9rem - 1px);
+}
+
+/* Interactive 3D Pointer Tilt + Specular Glare */
+.tilt-3d {
+  position: relative;
+  transform-style: preserve-3d;
+  transform: perspective(950px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.16s ease-out, box-shadow 0.2s ease;
+  will-change: transform;
+}
+
+.tilt-3d::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--glare-o, 0);
+  background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), var(--cs-glare), transparent 65%);
+  transition: opacity 0.2s ease;
+}
+
+.tilt-depth {
+  transform: translateZ(18px);
+}
+
+/* 3D Stacked Isometric Code Layers in Hero Banner */
+.badge-3d {
+  background: linear-gradient(135deg, var(--cs-accent), var(--cs-accent-2));
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  box-shadow: 0 3px 0 var(--cs-accent-lip), 0 6px 12px rgba(79, 70, 229, 0.28);
+}
+
+.stack-3d {
+  position: relative;
+  width: 184px;
+  height: 92px;
+  transform-style: preserve-3d;
+  transform: perspective(600px) rotateX(50deg) rotateZ(-24deg);
+}
+
+.stack-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--cs-font-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #ffffff;
+  border-radius: 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.28);
+  transition: transform 0.28s ease;
+}
+
+.layer-html { background: linear-gradient(135deg, #f97316, #ea580c); transform: translateZ(0px); }
+.layer-css  { background: linear-gradient(135deg, #4f46e5, #06b6d4); transform: translateZ(18px); }
+.layer-js   { background: linear-gradient(135deg, #0f766e, #10b981); transform: translateZ(36px); }
+
+.hero-3d-banner:hover .layer-css { transform: translateZ(26px); }
+.hero-3d-banner:hover .layer-js  { transform: translateZ(52px); }
+
+/* ==========================================================================
+   Tactile 3D Extruded Buttons (Keycap Push Physics)
+   ========================================================================== */
+.btn-3d,
+.lesson-tab-btn,
+.quiz-option-btn,
+#lesson-detail .btn,
+#dashboard-bookmarks .btn {
+  border-radius: 0.6rem;
+  font-weight: 600;
+  box-shadow: 0 4px 0 var(--cs-btn-lip), 0 6px 12px var(--cs-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.btn-3d:hover,
+.lesson-tab-btn:hover,
+.quiz-option-btn:hover:not(:disabled),
+#lesson-detail .btn:hover,
+#dashboard-bookmarks .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--cs-btn-lip), 0 10px 16px var(--cs-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.btn-3d:active,
+.lesson-tab-btn:active,
+.quiz-option-btn:active:not(:disabled),
+#lesson-detail .btn:active,
+#dashboard-bookmarks .btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--cs-btn-lip), 0 2px 4px var(--cs-shadow);
+}
+
+.btn-primary,
+.lesson-tab-btn.active {
+  background: linear-gradient(135deg, var(--cs-accent), #4338ca);
+  border-color: var(--cs-accent);
+  color: #ffffff;
+  --cs-btn-lip: var(--cs-accent-lip);
+}
+
+.btn-success { --cs-btn-lip: #14532d; }
+.btn-warning { --cs-btn-lip: #92400e; }
+.btn-danger  { --cs-btn-lip: #7f1d1d; }
+
+/* ==========================================================================
+   Recessed 3D Code Blocks, Sandbox Panes & Glossy 3D Progress Cylinders
+   ========================================================================== */
+.code-block-wrap {
+  background-color: var(--cs-code-bg);
+  color: var(--cs-code-text);
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: inset 0 4px 14px rgba(0, 0, 0, 0.5), 0 8px 20px var(--cs-shadow);
+  overflow: hidden;
+}
+
+.code-block-header {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+}
+
+.code-block-pre {
+  margin: 0;
+  padding: 1rem;
+  font-family: var(--cs-font-mono);
+  font-size: 0.875rem;
+  line-height: 1.55;
+  overflow-x: auto;
+  color: var(--cs-code-text);
+}
+
+.pane-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: inset 0 -2px 2px rgba(0, 0, 0, 0.3), 0 0 8px currentColor;
+}
+
+.dot-html { background: #f97316; color: rgba(249, 115, 22, 0.6); }
+.dot-css  { background: #3b82f6; color: rgba(59, 130, 246, 0.6); }
+.dot-js   { background: #eab308; color: rgba(234, 179, 8, 0.6); }
+
+.win-dots {
+  display: inline-flex;
+  gap: 5px;
+}
+
+.win-dots i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: inset 0 -1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.win-dots i:nth-child(1) { background: #ef4444; }
+.win-dots i:nth-child(2) { background: #f59e0b; }
+.win-dots i:nth-child(3) { background: #22c55e; }
+
+.code-input {
+  font-family: var(--cs-font-mono);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  background-color: var(--cs-surface-solid);
+  color: var(--cs-text);
+  resize: vertical;
+  min-height: 112px;
+  box-shadow: inset 0 2px 6px var(--cs-shadow);
+}
+
+.code-input:focus {
+  background-color: var(--cs-surface-solid);
+  color: var(--cs-text);
+  box-shadow: inset 0 0 0 2px var(--cs-accent), inset 0 2px 8px var(--cs-shadow);
+}
+
+.preview-pane {
+  min-height: 360px;
+}
+
+.sandbox-iframe {
+  min-height: 400px;
+  background-color: #ffffff;
+}
+
+/* Quiz */
+.quiz-card {
+  max-width: 740px;
+}
+
+.quiz-option-btn {
+  text-align: left;
+  padding: 0.78rem 1rem;
+}
+
+/* 3D Glossy Cylinder Progress Bars */
+.progress-3d {
+  height: 16px;
+  border-radius: 999px;
+  background-color: var(--cs-surface-alt);
+  border: 1px solid var(--cs-border);
+  box-shadow: inset 0 3px 6px var(--cs-shadow);
+  overflow: hidden;
+}
+
+.progress-3d .progress-bar {
+  border-radius: 999px;
+  position: relative;
+  transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: inset 0 3px 3px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.25);
+}
+
+.bar-3d-success { background: linear-gradient(90deg, #16a34a, #4ade80); }
+.bar-3d-primary { background: linear-gradient(90deg, #4f46e5, #818cf8); }
+.bar-3d-info    { background: linear-gradient(90deg, #0891b2, #38bdf8); }
+
+/* Dashboard Bookmarks */
+#dashboard-bookmarks .list-group-item {
+  background-color: transparent;
+  border-color: var(--cs-border);
+  color: var(--cs-text);
+}
+
+/* Respect Reduced Motion Preference */
+@media (prefers-reduced-motion: reduce) {
+  .cube-3d,
+  .app-view:not(.d-none) {
+    animation: none;
+  }
+  .tilt-3d,
+  .stack-layer,
+  .btn-3d,
+  .nav-3d {
+    transition: none;
+    transform: none;
+  }
+}
